@@ -4,13 +4,14 @@ import multiprocessing
 
 import tkinter as tk
 from tkinter import ttk
+from tkinter import messagebox
 
 from pynput.mouse import Controller, Button
 from pynput.keyboard import Listener, KeyCode
 import ctypes
 
-TOGGLE_KEY = KeyCode(char='k')
 
+TOGGLE_KEY = KeyCode(char='k')
 DELAY = 1.5
 mouse = Controller()
 
@@ -67,6 +68,7 @@ class AutoClicker:
 
 
 def run_autoclicker():
+
     if process_status.value == 1:
         print("Killing process")
         thread_status.value = 0
@@ -86,23 +88,28 @@ def validate_time(time_delay):
     global DELAY
     try:
         time_delay = float(time_delay)
-        if time_delay >= 0.1:
+        if time_delay > 0.1:
             DELAY = time_delay
             tk_status.set(f"Time delay set to {time_delay} sec(s)")
         else:
-            tk_status.set(f"Time delay should be >= 0.1")
+            tk_status.set(f"Time delay should be > 0.1")
 
     except ValueError:
         tk_status.set(f"Invalid Time Delay")
 
 
-def status_update():
-    global tk_status
-    tk_status.set(c_tk_status.value)
+def on_closing():
+    if messagebox.askokcancel("Quit", "Do you want to quit?"):
+        if bool(process_status.value):
+            print("Forcibly closing thread")
+            thread_status.value = int(False)
+            process_status.value = int(False)
+        print("Closing Window")
+        window.destroy()
+
 
 
 if __name__ == "__main__":
-
     process_status = multiprocessing.Value('i', int(False))
     thread_status = multiprocessing.Value('i', int(False))
 
@@ -136,4 +143,5 @@ if __name__ == "__main__":
     style.configure('TButton', font=(None, 15))
     style.configure('TLabel', font=(None, 15))
 
+    window.protocol('WM_DELETE_WINDOW', on_closing)
     window.mainloop()
